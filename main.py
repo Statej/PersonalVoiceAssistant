@@ -18,33 +18,75 @@
 # except:
 #     pass
 
+# Imports needed for Vosk voice-to-speech engine
 import argparse
 import queue
 import sys
 import sounddevice as sd
-
 from vosk import Model, KaldiRecognizer
 
+# Imports needed for selenium controller
+from time import sleep
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 q = queue.Queue()
-wakewordList = ["hey computer", "a computer", "hate computer", "computer listen", "listen computer"]
+wakeWordList = ["hey computer", "a computer", "hate computer", "computer listen", "listen computer"]
+# Set up firefox profile
+profile = webdriver.FirefoxProfile(
+    'C:/Users/ahojj/AppData/Roaming/Mozilla/Firefox/Profiles/wv9a3ewy.default-release')
+profile.update_preferences()
+desired = DesiredCapabilities.FIREFOX
+
+
 def int_or_str(text):
     """Helper function for argument parsing."""
     try:
         return int(text)
     except ValueError:
         return text
+
+
 def callback(indata, frames, time, status):
     """This is called (from a separate thread) for each audio block."""
     if status:
         print(status, file=sys.stderr)
     q.put(bytes(indata))
-def detectWakeword(result):
-    for phrase in wakewordList:
-        if phrase in result:
+
+
+def detectWakeWord(userVoiceInput):
+    for phrase in wakeWordList:
+        if phrase in userVoiceInput:
             return True
     return False
 
 
+def openYoutube():
+    driver = webdriver.Firefox(firefox_profile=profile,
+                               desired_capabilities=desired)
+    searchTerm = "sterakdary"
+    driver.get("https://www.youtube.com")
+    search = driver.find_element(By.NAME, "search_query")
+    search.send_keys(searchTerm)
+    # videoElement = WebDriverWait(driver, timeout=3).until(search_query_typed, "Search query text not found")
+    # Condition to use in until function. Check for search query to contain the search term
+    waitCondition = EC.text_to_be_present_in_element_value((By.NAME, "search_query"), searchTerm)
+    videoElement = WebDriverWait(driver, timeout=3).until(waitCondition, "Search query text not found")
+    sleep(.3)
+    driver.find_element(By.ID, "search-icon-legacy").click()
+    videoElement = WebDriverWait(driver, timeout=4).until(
+        lambda d: d.find_element(By.CSS_SELECTOR, 'div#contents ytd-item-section-renderer>div#contents a#thumbnail'), "Video thumbnail not found")
+    videoElement.click()
+    sleep(1)
+    ActionChains(driver).send_keys("f").perform()
+
+
+# START OF MAIN #
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument(
     "-l", "--list-devices", action="store_true",
@@ -99,8 +141,9 @@ try:
             else:
                 result = rec.PartialResult()
                 print(result)
-                if detectWakeword(result):
+                if detectWakeWord(result):
                     print("Big Win Big Win Big Win Big Win Big Win Big Win")
+                    openYoutube()
                     rec.Reset()
 
             if dump_fn is not None:
