@@ -35,8 +35,20 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+import enum
+
 q = queue.Queue()
 wakeWordList = ["hey computer", "a computer", "hate computer", "computer listen", "listen computer"]
+
+playYoutubeCommand = ["play youtube", "play you tube", "play you do", "open you tube", "open youtube", "open you do"]
+
+
+class CommandEnums(enum.Enum):
+    noCommand = 999
+    youtube = 0
+
+
+commandList = [playYoutubeCommand]
 # Set up firefox profile
 profile = webdriver.FirefoxProfile(
     'C:/Users/ahojj/AppData/Roaming/Mozilla/Firefox/Profiles/wv9a3ewy.default-release')
@@ -64,6 +76,17 @@ def detectWakeWord(userVoiceInput):
         if phrase in userVoiceInput:
             return True
     return False
+
+
+def detectCommand(userVoiceInput):
+    for i in range(0, len(commandList)):
+        commandAlternatives = commandList[i]
+        # print(commandAlternatives)
+        for command in commandAlternatives:
+            # print(command)
+            if command in userVoiceInput:
+                return CommandEnums(i)
+    return CommandEnums(999)
 
 
 def openYoutube():
@@ -134,6 +157,7 @@ try:
         print("#" * 80)
 
         rec = KaldiRecognizer(model, args.samplerate)
+        wakeWordDetected = False
         while True:
             data = q.get()
             if rec.AcceptWaveform(data):
@@ -142,9 +166,14 @@ try:
                 result = rec.PartialResult()
                 print(result)
                 if detectWakeWord(result):
-                    print("Big Win Big Win Big Win Big Win Big Win Big Win")
-                    openYoutube()
+                    wakeWordDetected = True
+                    # openYoutube()
                     rec.Reset()
+                elif wakeWordDetected:
+                    command = detectCommand(result)
+                    if command == CommandEnums(0):
+                        openYoutube()
+                        wakeWordDetected = False
 
             if dump_fn is not None:
                 dump_fn.write(data)
