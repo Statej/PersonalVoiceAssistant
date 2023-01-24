@@ -45,7 +45,7 @@ playYoutubeCommand = ["play youtube", "play you tube", "play you do", "open you 
 
 class CommandEnums(enum.Enum):
     noCommand = 999
-    youtube = 0
+    youtube = 200
 
 
 commandList = [playYoutubeCommand]
@@ -89,10 +89,19 @@ def detectCommand(userVoiceInput):
     return CommandEnums(999)
 
 
-def openYoutube():
+def resetInput():
+    global wakeWordDetected
+    wakeWordDetected = False
+    global commandSelected
+    commandSelected = CommandEnums.noCommand
+    global commandText
+    commandText = ""
+
+
+def openYoutube(searchTerm):
     driver = webdriver.Firefox(firefox_profile=profile,
                                desired_capabilities=desired)
-    searchTerm = "sterakdary"
+    # searchTerm = "sterakdary"
     driver.get("https://www.youtube.com")
     search = driver.find_element(By.NAME, "search_query")
     search.send_keys(searchTerm)
@@ -158,6 +167,9 @@ try:
 
         rec = KaldiRecognizer(model, args.samplerate)
         wakeWordDetected = False
+        commandJustFound = False
+        commandSelected = CommandEnums.noCommand
+        commandText = ""
         while True:
             data = q.get()
             if rec.AcceptWaveform(data):
@@ -170,10 +182,25 @@ try:
                     # openYoutube()
                     rec.Reset()
                 elif wakeWordDetected:
-                    command = detectCommand(result)
-                    if command == CommandEnums(0):
-                        openYoutube()
-                        wakeWordDetected = False
+                    if commandSelected == CommandEnums.noCommand:
+                        commandSelected = detectCommand(result)
+                        if commandSelected != CommandEnums.noCommand:
+                            # Reset the input so that the command trigger word itself is not passed through to the command
+                            rec.Reset()
+                    else:
+                        if commandSelected.value < 200:
+                            # Execute command as no extra input required
+                            resetInput()
+                        else:
+                            # Collect extra command parameters
+                            if result != "":
+                                commandText = result
+                            # Pause encountered meaning the command has been fully inputted and can be executed
+                            else:
+                                if commandSelected == CommandEnums(0):
+                                    openYoutube(commandText)
+                                    wakeWordDetected = False
+                                resetInput()
 
             if dump_fn is not None:
                 dump_fn.write(data)

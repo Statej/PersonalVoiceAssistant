@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3bc0061c-e59b-4e00-a1c5-0922d403f053" name="Changes" comment="When wakeword detected, selenium opens YT on Sterakdary channel and plays the top hit video">
+    <list default="true" id="3bc0061c-e59b-4e00-a1c5-0922d403f053" name="Changes" comment="Prepared a tree system for adding additional commands">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -71,7 +71,14 @@
       <option name="project" value="LOCAL" />
       <updated>1674430073829</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Prepared a tree system for adding additional commands">
+      <created>1674432514591</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1674432514591</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -89,6 +96,7 @@
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="When wakeword detected, selenium opens YT on Sterakdary channel and plays the top hit video" />
-    <option name="LAST_COMMIT_MESSAGE" value="When wakeword detected, selenium opens YT on Sterakdary channel and plays the top hit video" />
+    <MESSAGE value="Prepared a tree system for adding additional commands" />
+    <option name="LAST_COMMIT_MESSAGE" value="Prepared a tree system for adding additional commands" />
   </component>
 </project>
