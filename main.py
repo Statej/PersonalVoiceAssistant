@@ -40,15 +40,20 @@ import enum
 q = queue.Queue()
 wakeWordList = ["hey computer", "a computer", "hate computer", "computer listen", "listen computer"]
 
-playYoutubeCommand = ["play youtube", "play you tube", "play you do", "open you tube", "open youtube", "open you do"]
-
 
 class CommandEnums(enum.Enum):
     noCommand = 999
     youtube = 200
+    goodNight = 100
+    volumeDown = 101
 
 
-commandList = [playYoutubeCommand]
+playYoutubeCommandKeywords = ["play youtube", "play you tube", "play you do", "open you tube", "open youtube", "open you do"]
+playYoutubeCommand = {"keywords": playYoutubeCommandKeywords, "enum": CommandEnums.youtube}
+goodNightCommandKeywords = ["good night"]
+goodNightCommand = {"keywords": goodNightCommandKeywords, "enum": CommandEnums.goodNight}
+
+commandList = [playYoutubeCommand, goodNightCommand]
 # Set up firefox profile
 profile = webdriver.FirefoxProfile(
     'C:/Users/ahojj/AppData/Roaming/Mozilla/Firefox/Profiles/wv9a3ewy.default-release')
@@ -80,12 +85,12 @@ def detectWakeWord(userVoiceInput):
 
 def detectCommand(userVoiceInput):
     for i in range(0, len(commandList)):
-        commandAlternatives = commandList[i]
+        commandAlternatives = commandList[i]["keywords"]  # get the "keywords" key value pair from dict at position i
         # print(commandAlternatives)
         for command in commandAlternatives:
             # print(command)
             if command in userVoiceInput:
-                return CommandEnums(i)
+                return commandList[i]["enum"]  # get the "enum" key value pair from dict at position i
     return CommandEnums(999)
 
 
@@ -117,6 +122,9 @@ def openYoutube(searchTerm):
     sleep(1)
     ActionChains(driver).send_keys("f").perform()
 
+
+def extractUserInput(userInput):
+    return userInput[17:-3]
 
 # START OF MAIN #
 parser = argparse.ArgumentParser(add_help=False)
@@ -167,7 +175,7 @@ try:
 
         rec = KaldiRecognizer(model, args.samplerate)
         wakeWordDetected = False
-        commandJustFound = False
+        argumentProvided = False
         commandSelected = CommandEnums.noCommand
         commandText = ""
         while True:
@@ -175,8 +183,8 @@ try:
             if rec.AcceptWaveform(data):
                 print(rec.Result())
             else:
-                result = rec.PartialResult()
-                print(result)
+                result = extractUserInput(rec.PartialResult())
+                print("user input: " + result + "\n")
                 if detectWakeWord(result):
                     wakeWordDetected = True
                     # openYoutube()
@@ -188,16 +196,27 @@ try:
                             # Reset the input so that the command trigger word itself is not passed through to the command
                             rec.Reset()
                     else:
+                        print("command found:" + str(commandSelected.value))
                         if commandSelected.value < 200:
                             # Execute command as no extra input required
+                            if commandSelected == CommandEnums(100):
+                                exit(5)
+                                wakeWordDetected = False
                             resetInput()
                         else:
                             # Collect extra command parameters
-                            if result != "":
+                            print("result" + result)
+                            # if not argumentProvided:
+                            #     commandText = result
+                            #     if result != "":
+                            #         argumentProvided = True
+                            # else:
+                            if result != "" or commandText == "":
                                 commandText = result
                             # Pause encountered meaning the command has been fully inputted and can be executed
                             else:
-                                if commandSelected == CommandEnums(0):
+                                print("commandSelect")
+                                if commandSelected == CommandEnums(200):
                                     openYoutube(commandText)
                                     wakeWordDetected = False
                                 resetInput()
