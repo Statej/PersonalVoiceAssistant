@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3bc0061c-e59b-4e00-a1c5-0922d403f053" name="Changes" comment="Enhanced the command accepting decision tree to listen for command's arguments. Changed the openYT command to open the command argument instead of hardcoded value">
+    <list default="true" id="3bc0061c-e59b-4e00-a1c5-0922d403f053" name="Changes" comment="Added a starting point for changing audio volume">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -85,7 +85,21 @@
       <option name="project" value="LOCAL" />
       <updated>1674596769562</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Fixed a bunch of bugs with the previous decision tree. Code now listens for user input after command has been selected and successfully opens YouTube on the desired search term. Also added command for exiting">
+      <created>1675972411717</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1675972411717</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Added a starting point for changing audio volume">
+      <created>1675972465123</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1675972465123</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -105,17 +119,8 @@
     <MESSAGE value="When wakeword detected, selenium opens YT on Sterakdary channel and plays the top hit video" />
     <MESSAGE value="Prepared a tree system for adding additional commands" />
     <MESSAGE value="Enhanced the command accepting decision tree to listen for command's arguments. Changed the openYT command to open the command argument instead of hardcoded value" />
-    <option name="LAST_COMMIT_MESSAGE" value="Enhanced the command accepting decision tree to listen for command's arguments. Changed the openYT command to open the command argument instead of hardcoded value" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/main.py</url>
-          <line>182</line>
-          <option name="timeStamp" value="5" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <MESSAGE value="Fixed a bunch of bugs with the previous decision tree. Code now listens for user input after command has been selected and successfully opens YouTube on the desired search term. Also added command for exiting" />
+    <MESSAGE value="Added a starting point for changing audio volume" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added a starting point for changing audio volume" />
   </component>
 </project>

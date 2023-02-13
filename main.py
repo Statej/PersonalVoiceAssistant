@@ -35,6 +35,11 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+# Imports needed for volume control
+from ctypes import cast, POINTER
+from comtypes import CLSCTX_ALL
+from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+
 import enum
 
 q = queue.Queue()
@@ -60,6 +65,9 @@ profile = webdriver.FirefoxProfile(
 profile.update_preferences()
 desired = DesiredCapabilities.FIREFOX
 
+devices = AudioUtilities.GetSpeakers()
+interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+volumeController = cast(interface, POINTER(IAudioEndpointVolume))
 
 def int_or_str(text):
     """Helper function for argument parsing."""
@@ -94,13 +102,15 @@ def detectCommand(userVoiceInput):
     return CommandEnums(999)
 
 
-def resetInput():
+def resetInput(volController):
     global wakeWordDetected
     wakeWordDetected = False
     global commandSelected
     commandSelected = CommandEnums.noCommand
     global commandText
     commandText = ""
+    global currentVolumeLevel
+    volController.SetMasterVolumeLevelScalar(currentVolumeLevel, None)
 
 
 def openYoutube(searchTerm):
@@ -125,18 +135,6 @@ def openYoutube(searchTerm):
 
 def extractUserInput(userInput):
     return userInput[17:-3]
-
-
-from ctypes import cast, POINTER
-from comtypes import CLSCTX_ALL
-from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
-
-devices = AudioUtilities.GetSpeakers()
-interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
-volume = cast(interface, POINTER(IAudioEndpointVolume))
-
-# volume.SetMasterVolumeLevelScalar(.67, None)
-
 
 # START OF MAIN #
 parser = argparse.ArgumentParser(add_help=False)
@@ -190,6 +188,7 @@ try:
         argumentProvided = False
         commandSelected = CommandEnums.noCommand
         commandText = ""
+        currentVolumeLevel = 0.0
         while True:
             data = q.get()
             if rec.AcceptWaveform(data):
@@ -199,6 +198,8 @@ try:
                 print("user input: " + result + "\n")
                 if detectWakeWord(result):
                     wakeWordDetected = True
+                    currentVolumeLevel = volumeController.GetMasterVolumeLevelScalar()
+                    volumeController.SetMasterVolumeLevelScalar(.1, None)
                     # openYoutube()
                     rec.Reset()
                 elif wakeWordDetected:
@@ -214,7 +215,7 @@ try:
                             if commandSelected == CommandEnums(100):
                                 exit(5)
                                 wakeWordDetected = False
-                            resetInput()
+                            resetInput(volumeController)
                         else:
                             # Collect extra command parameters
                             print("result" + result)
@@ -231,7 +232,7 @@ try:
                                 if commandSelected == CommandEnums(200):
                                     openYoutube(commandText)
                                     wakeWordDetected = False
-                                resetInput()
+                                resetInput(volumeController)
 
             if dump_fn is not None:
                 dump_fn.write(data)
