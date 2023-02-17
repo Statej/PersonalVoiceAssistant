@@ -23,6 +23,7 @@ import argparse
 import queue
 import sys
 import sounddevice as sd
+import wordtodigits
 from vosk import Model, KaldiRecognizer
 
 # Imports needed for selenium controller
@@ -40,7 +41,10 @@ from ctypes import cast, POINTER
 from comtypes import CLSCTX_ALL
 from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 
+from num2words import num2words
+
 import enum
+import re
 
 q = queue.Queue()
 wakeWordList = ["hey computer", "a computer", "hate computer", "computer listen", "listen computer"]
@@ -49,16 +53,20 @@ wakeWordList = ["hey computer", "a computer", "hate computer", "computer listen"
 class CommandEnums(enum.Enum):
     noCommand = 999
     youtube = 200
+    setVolume = 201
     goodNight = 100
     volumeDown = 101
+    volumeUp = 102
 
 
 playYoutubeCommandKeywords = ["play youtube", "play you tube", "play you do", "open you tube", "open youtube", "open you do"]
 playYoutubeCommand = {"keywords": playYoutubeCommandKeywords, "enum": CommandEnums.youtube}
 goodNightCommandKeywords = ["good night"]
 goodNightCommand = {"keywords": goodNightCommandKeywords, "enum": CommandEnums.goodNight}
+setVolumeKeywords = ["set volume", "said volume", "said the volume"]
+setVolumeCommand = {"keywords": setVolumeKeywords, "enum": CommandEnums.setVolume}
 
-commandList = [playYoutubeCommand, goodNightCommand]
+commandList = [playYoutubeCommand, goodNightCommand, setVolumeCommand]
 # Set up firefox profile
 profile = webdriver.FirefoxProfile(
     'C:/Users/ahojj/AppData/Roaming/Mozilla/Firefox/Profiles/wv9a3ewy.default-release')
@@ -102,15 +110,17 @@ def detectCommand(userVoiceInput):
     return CommandEnums(999)
 
 
-def resetInput(volController):
+def resetInput(volController, resetVolume=True):
     global wakeWordDetected
     wakeWordDetected = False
     global commandSelected
     commandSelected = CommandEnums.noCommand
     global commandText
     commandText = ""
-    global currentVolumeLevel
-    volController.SetMasterVolumeLevelScalar(currentVolumeLevel, None)
+    if resetVolume:
+        global currentVolumeLevel
+        volController.SetMasterVolumeLevelScalar(currentVolumeLevel, None)
+
 
 
 def openYoutube(searchTerm):
@@ -200,7 +210,6 @@ try:
                     wakeWordDetected = True
                     currentVolumeLevel = volumeController.GetMasterVolumeLevelScalar()
                     volumeController.SetMasterVolumeLevelScalar(.1, None)
-                    # openYoutube()
                     rec.Reset()
                 elif wakeWordDetected:
                     if commandSelected == CommandEnums.noCommand:
@@ -218,7 +227,7 @@ try:
                             resetInput(volumeController)
                         else:
                             # Collect extra command parameters
-                            print("result" + result)
+                            print("extra parameters" + result)
                             # if not argumentProvided:
                             #     commandText = result
                             #     if result != "":
@@ -231,8 +240,17 @@ try:
                                 print("commandSelect")
                                 if commandSelected == CommandEnums(200):
                                     openYoutube(commandText)
-                                    wakeWordDetected = False
-                                resetInput(volumeController)
+                                    resetInput(volumeController)
+                                elif commandSelected == CommandEnums(201):
+                                    numbers = re.findall('[0-9]+', wordtodigits.convert(commandText.strip()))
+                                    print(numbers)
+                                    convertedCommandText = float("0." + numbers[0])
+                                    if 0.0 <= convertedCommandText <= 1.0:
+                                        print("setting volume to +" + str(convertedCommandText))
+                                        volumeController.SetMasterVolumeLevelScalar(convertedCommandText, None)
+                                    else:
+                                        print("Choose volume between 0 and 100")
+                                    resetInput(volumeController, False)
 
             if dump_fn is not None:
                 dump_fn.write(data)
